@@ -12,7 +12,7 @@ if __name__ == '__main__':
     parser.add_argument('--cust_data_init_weights_path', default='/Users/admin/Desktop/模型/cust-data', type=str,
                         help="初始化训练权重，用于自己数据集上fine-tune权重")
     parser.add_argument('--CUDA_VISIBLE_DEVICES', default='0', type=str, help="GPU设置")
-    parser.add_argument('--test_img_dir', default='/Users/admin/Desktop/github/synth-data/output/syh_003/images', type=str, help="img path")
+    parser.add_argument('--test_img_dir', default='./img', type=str, help="img path")
 
 
     args = parser.parse_args()

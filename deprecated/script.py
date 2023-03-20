@@ -8,7 +8,7 @@ import torch
 path = "../cust-data/trocr-small-handwritten.pt"
 data = torch.load(path,map_location='cpu')
 
-model = data["model"]
+model = data["trocr"]
 
 
 #
@@ -28,18 +28,18 @@ for k,v in model.items():
 # model1 = torch.load(path,map_location='cpu')
 # for k,v in model1.items():
 #     print(k,v.shape)
-# for k,v in model.items():
+# for k,v in trocr.items():
 #     print(k,v.shape)
 #
 #
 # print(len(model1))
-# print(len(model))
-# for (k1,v1),(k2,v2) in zip(model1.items(),model.items()):
+# print(len(trocr))
+# for (k1,v1),(k2,v2) in zip(model1.items(),trocr.items()):
 #     print(k1,v1.shape)
 #     print(k2,v2.shape)
 #     print()
 # new_model = {}
-# for k,v in model.items():
+# for k,v in trocr.items():
 #     if k == "decoder.output_projection.weight" or k=="decoder.embed_tokens.weight":
 #         continue
 #     new_model[k] = v

@@ -75,7 +75,7 @@ if __name__ == '__main__':
     with open(os.path.join(args.cust_data_init_weights_path, "config.json"), "w") as f:
         f.write(json.dumps(model_config, ensure_ascii=False))
 
-    ##加载cust model
+    ##加载cust trocr
     cust_config = AutoConfig.from_pretrained(args.cust_data_init_weights_path)
     cust_model = VisionEncoderDecoderModel(cust_config)
 
