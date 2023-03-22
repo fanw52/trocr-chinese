@@ -45,16 +45,18 @@ if __name__ == '__main__':
     parser.add_argument('--device', default='6', type=str, help="GPU设置")
 
     args = parser.parse_args()
-    pprint.pprint(args)
+
     os.environ["CUDA_VISIBLE_DEVICES"] = args.device
     os.environ["WANDB_DISABLED"] = "false"
     print("loading data .................")
     config = load_config(args.config_file)
+    pprint.pprint(args)
+    pprint.pprint(config)
     data_dir = config["data_dir"]
     train_path_list = config["train_data"]
     test_path_list = config["test_data"]
     ##图像预处理
-    processor = TrOCRProcessor.from_pretrained(args.cust_data_init_weights_path)
+    processor = TrOCRProcessor.from_pretrained(config["cust_data_init_weights_path"])
     vocab = processor.tokenizer.get_vocab()
     vocab_inp = {vocab[key]: key for key in vocab}
     transformer = lambda x: x  ##图像数据增强函数，可自定义
@@ -66,7 +68,7 @@ if __name__ == '__main__':
     eval_dataset = trocrDatasetV2(data_dir=data_dir, path_list=test_path_list, processor=processor,
                                   max_target_length=config["max_target_length"], transformer=transformer)
 
-    model = VisionEncoderDecoderModel.from_pretrained(args.cust_data_init_weights_path)
+    model = VisionEncoderDecoderModel.from_pretrained(config["cust_data_init_weights_path"])
     model.config.decoder_start_token_id = processor.tokenizer.cls_token_id
     model.config.pad_token_id = processor.tokenizer.pad_token_id
 
