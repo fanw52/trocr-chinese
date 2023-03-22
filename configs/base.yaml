@@ -1,0 +1,16 @@
+
+
+data_dir: /data/wufan/data/OCRData/open_hand_writing/train_data
+train_data:
+  - /data/wufan/data/OCRData/open_hand_writing/train_data/handwrite/HW_Chinese/train_hw.txt
+test_data:
+  - /data/wufan/data/OCRData/open_hand_writing/train_data/handwrite/HW_Chinese/test_hw.txt
+num_train_epochs: 10
+eval_steps: 10000
+save_steps: 10000
+max_target_length: 25
+per_device_train_batch_size: 8
+per_device_eval_batch_size: 16
+checkpoint_path: ./checkpoint/post-trocr-custdata
+cust_data_init_weights_path: /data1/wufan/model/post-cust-data
+

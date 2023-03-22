@@ -9,7 +9,10 @@ import argparse
 from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 from transformers import AutoConfig
 
+'''
+python init_custdata_model.py --cust_vocab /data1/wufan/model/cust-data/vocab.txt --pretrain_model /data1/wufan/model/cust-data --cust_data_init_weights_path /data1/wufan/model/post-cust-data
 
+'''
 def read_vocab(vocab_path):
     """
     读取自定义训练字符集
@@ -35,12 +38,12 @@ def read_vocab(vocab_path):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='trocr fine-tune训练')
 
-    parser.add_argument('--cust_vocab', default="./cust-data/vocab.txt", type=str, help="自定义训练数字符集")
+    parser.add_argument('--cust_vocab', default="/data1/wufan/model/cust-data/vocab.txt", type=str, help="自定义训练数字符集")
 
-    parser.add_argument('--pretrain_model', default='./weights', type=str, help="预训练bert权重文件")
+    parser.add_argument('--pretrain_model', default='/data1/wufan/model/chinese-ocr-hand-write-pretrain/', type=str, help="预训练bert权重文件")
 
     parser.add_argument('--cust_data_init_weights_path', default='./cust-data/weights', type=str,
-                        help="初始化训练权重，用于自己数据集上fine-tune权重")
+                        help="初始化训练权重，用于自己数据集上fine-tune权重，从预训练权重中抽取得到")
     args = parser.parse_args()
 
     processor = TrOCRProcessor.from_pretrained(args.pretrain_model)

@@ -1,13 +1,23 @@
-import os
 import argparse
-from glob import glob
-from dataset import trocrDataset, decode_text, trocrDatasetV2
+import os
+
+from datasets import load_metric
+from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments
 from transformers import TrOCRProcessor
 from transformers import VisionEncoderDecoderModel
 from transformers import default_data_collator
-from sklearn.model_selection import train_test_split
-from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments
-from datasets import load_metric
+
+from dataset import decode_text, LMDBDataSet
+
+'''
+python trainv2.py --cust_data_init_weights_path /data1/wufan/model/cust-data --checkpoint_path ./checkpoint/trocr-custdata-20230321 \
+       --per_device_train_batch_size 24 \
+       --CUDA_VISIBLE_DEVICES 4,5,6,7 \
+       --num_train_epochs 20 --max_target_length 128 --eval_steps 20000 --save_steps 20000 --gradient_accumulation_steps 3
+
+
+'''
+
 
 def compute_metrics(pred):
     """
@@ -25,9 +35,10 @@ def compute_metrics(pred):
 
     acc = [pred == label for pred, label in zip(pred_str, label_str)]
     print([pred_str[0], label_str[0]])
-    acc = sum(acc)/(len(acc)+0.000001)
+    acc = sum(acc) / (len(acc) + 0.000001)
 
     return {"cer": cer, "acc": acc}
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='trocr fine-tune训练')
@@ -37,6 +48,7 @@ if __name__ == '__main__':
     parser.add_argument('--per_device_train_batch_size', default=32, type=int, help="train batch size")
     parser.add_argument('--per_device_eval_batch_size', default=8, type=int, help="eval batch size")
     parser.add_argument('--max_target_length', default=128, type=int, help="训练文字字符数")
+    parser.add_argument('--gradient_accumulation_steps', default=1, type=int, help="训练文字字符数")
 
     parser.add_argument('--num_train_epochs', default=10, type=int, help="训练epoch数")
     parser.add_argument('--eval_steps', default=1000, type=int, help="模型评估间隔数")
@@ -54,17 +66,26 @@ if __name__ == '__main__':
     # train_paths, test_paths = train_test_split(paths, test_size=0.05, random_state=10086)
     # print("train num:", len(train_paths), "test num:", len(test_paths))
     data_dir = "/data/wufan/data/OCRData/open_hand_writing/train_data"
-    train_path_list = [f"{data_dir}/handwrite/HW_Chinese/train_hw.txt"]
-    test_path_list = [f"{data_dir}/handwrite/HW_Chinese/test_hw.txt"]
+    train_data_dir = "/data/wufan/data/lmdb_rec_data/train"
+
+    val_data_dir = "/data/wufan/data/lmdb_rec_data/val"
+    # train_path_list = [f"{data_dir}/handwrite/HW_Chinese/train_hw.txt"]
+    # test_path_list = [f"{data_dir}/handwrite/HW_Chinese/test_hw.txt"]
     ##图像预处理
+
     processor = TrOCRProcessor.from_pretrained(args.cust_data_init_weights_path)
     vocab = processor.tokenizer.get_vocab()
     vocab_inp = {vocab[key]: key for key in vocab}
-    transformer = lambda x: x ##图像数据增强函数，可自定义
+    transformer = lambda x: x  ##图像数据增强函数，可自定义
 
-    train_dataset = trocrDatasetV2(data_dir= data_dir,path_list=train_path_list, processor=processor, max_target_length=args.max_target_length, transformer=transformer)
+    # train_dataset = trocrDatasetV2(data_dir= data_dir,path_list=train_path_list, processor=processor, max_target_length=args.max_target_length, transformer=transformer)
+    train_dataset = LMDBDataSet(data_dir=train_data_dir, processor=processor, max_target_length=args.max_target_length,
+                                transformer=transformer)
     transformer = lambda x: x  ##图像数据增强函数
-    eval_dataset = trocrDatasetV2(data_dir= data_dir,path_list=test_path_list, processor=processor, max_target_length=args.max_target_length, transformer=transformer)
+    eval_dataset = LMDBDataSet(data_dir=val_data_dir, processor=processor, max_target_length=args.max_target_length,
+                               transformer=transformer)
+
+    # eval_dataset = trocrDatasetV2(data_dir= data_dir,path_list=test_path_list, processor=processor, max_target_length=args.max_target_length, transformer=transformer)
 
     model = VisionEncoderDecoderModel.from_pretrained(args.cust_data_init_weights_path)
     model.config.decoder_start_token_id = processor.tokenizer.cls_token_id
@@ -84,9 +105,11 @@ if __name__ == '__main__':
     training_args = Seq2SeqTrainingArguments(
         predict_with_generate=True,
         evaluation_strategy="steps",
+        gradient_accumulation_steps=args.gradient_accumulation_steps,
         per_device_train_batch_size=args.per_device_train_batch_size,
         per_device_eval_batch_size=8,
         fp16=True,
+        dataloader_num_workers=32,
         output_dir=args.checkpoint_path,
         logging_steps=10,
         num_train_epochs=args.num_train_epochs,
@@ -108,8 +131,3 @@ if __name__ == '__main__':
     trainer.train()
     trainer.save_model(os.path.join(args.checkpoint_path, 'last'))
     processor.save_pretrained(os.path.join(args.checkpoint_path, 'last'))
-
-
-
-
-
