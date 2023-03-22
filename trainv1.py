@@ -2,13 +2,12 @@ import argparse
 import os
 import pprint
 
-import yaml
 from datasets import load_metric
 from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments
 from transformers import TrOCRProcessor
 from transformers import VisionEncoderDecoderModel
 from transformers import default_data_collator
-
+from utils import load_config
 from dataset import decode_text, trocrDatasetV2
 
 '''
@@ -37,11 +36,6 @@ def compute_metrics(pred):
     return {"cer": cer, "acc": acc}
 
 
-def load_config(path):
-    with open(path) as f:
-        config = yaml.load(f, Loader=yaml.FullLoader)
-
-    return config
 
 
 if __name__ == '__main__':

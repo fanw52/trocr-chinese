@@ -1,0 +1,12 @@
+
+
+data_dir:
+  - /data/wufan/ocr-server-paddle/doc
+  - /data/wufan/ocr-server-paddle/doc
+  - /data/wufan/ocr-server-paddle/doc
+  - /data/wufan/ocr-server-paddle/doc
+label_path:
+  - /data/wufan/ocr-server-paddle/doc/2023032101_baidu_search_hw.txt
+  - /data/wufan/ocr-server-paddle/doc/2023032102_baidu_search_hw.txt
+  - /data/wufan/ocr-server-paddle/doc/2023032201_hw.txt
+  - /data/wufan/ocr-server-paddle/doc/hw1300.txt

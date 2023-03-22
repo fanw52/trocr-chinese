@@ -1,5 +1,9 @@
 import argparse
+import contextlib
+import time
 
+import torch
+import yaml
 from transformers import MODEL_MAPPING, SchedulerType
 
 # You should update this to your particular problem to have better documentation of `model_type`
@@ -214,7 +218,6 @@ def parse_args():
     return args
 
 
-
 def merge_config(config, opts):
     """
     Merge config into global config.
@@ -231,7 +234,7 @@ def merge_config(config, opts):
         else:
             sub_keys = key.split('.')
             assert (
-                sub_keys[0] in config
+                    sub_keys[0] in config
             ), "the sub_keys can only be one of global_config: {}, but get: " \
                "{}, please check your running command".format(
                 config.keys(), sub_keys[0])
@@ -241,4 +244,31 @@ def merge_config(config, opts):
                     cur[sub_key] = value
                 else:
                     cur = cur[sub_key]
+    return config
+
+
+class Profile(contextlib.ContextDecorator):
+    # YOLOv5 Profile class. Usage: @Profile() decorator or 'with Profile():' context manager
+    def __init__(self, t=0.0):
+        self.t = t
+        self.cuda = torch.cuda.is_available()
+
+    def __enter__(self):
+        self.start = self.time()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.dt = self.time() - self.start  # delta-time
+        self.t += self.dt  # accumulate dt
+
+    def time(self):
+        if self.cuda:
+            torch.cuda.synchronize()
+        return time.time()
+
+
+def load_config(path):
+    with open(path) as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+
     return config
